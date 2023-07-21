@@ -2,6 +2,17 @@ from loguru import logger
 import torch
 import numpy as np
 import time
+from tools import torch_sync
+
+
+def cal_perf(config, dataloader_len, duration, core_time, str_prefix):
+    model_forward_perf = config.repeat * dataloader_len * config.batch_size / duration
+    logger.info(str_prefix + "(" + config.framework + ") Perf: " +
+                str(model_forward_perf) + " ips")
+    model_forward_core_perf = config.repeat * dataloader_len * config.batch_size / core_time
+    logger.info(str_prefix + "(" + config.framework + ") core Perf: " +
+                str(model_forward_core_perf) + " ips")
+    return round(model_forward_perf, 3), round(model_forward_core_perf, 3)
 
 
 def model_forward(model, dataloader, evaluator, config):
@@ -17,6 +28,7 @@ def model_forward(model, dataloader, evaluator, config):
 
         all_top1 = []
         for step, (x, y) in enumerate(dataloader):
+            torch_sync(config)
             core_time_start = time.time()
 
             if step % config.log_freq == 0:
@@ -28,6 +40,7 @@ def model_forward(model, dataloader, evaluator, config):
                 x = x.cuda()
                 y = y.cuda()
                 pred = model(x)
+                torch_sync(config)
 
                 top1 = evaluator(pred, y)
 
@@ -39,16 +52,11 @@ def model_forward(model, dataloader, evaluator, config):
     logger.info("Top1 Acc: " + str(acc))
 
     duration = time.time() - start
-    model_forward_perf = config.repeat * len(
-        dataloader) * config.batch_size / duration
-    logger.info("Model Forward(" + config.framework + ") Perf: " +
-                str(model_forward_perf) + " ips")
-    model_forward_core_perf = config.repeat * len(
-        dataloader) * config.batch_size / core_time
-    logger.info("Model Forward(" + config.framework + ") core Perf: " +
-                str(model_forward_core_perf) + " ips")
+    model_forward_perf, model_forward_core_perf = cal_perf(
+        config, len(dataloader), duration, core_time, "Validation")
 
-    return model_forward_perf, model_forward_core_perf
+    return model_forward_perf, model_forward_core_perf, round(
+        float(np.mean(acc)), 3)
 
 
 def engine_forward(toolkits, dataloader, evaluator, config):
@@ -67,6 +75,7 @@ def engine_forward(toolkits, dataloader, evaluator, config):
 
         all_top1 = []
         for step, (x, y) in enumerate(dataloader):
+            torch_sync(config)
             core_time_start = time.time()
             if step % config.log_freq == 0:
                 logger.debug("Step: " + str(step) + " / " +
@@ -85,24 +94,20 @@ def engine_forward(toolkits, dataloader, evaluator, config):
             feat = postprocess_the_outputs(trt_outputs[0], output_shape)
 
             pred = torch.from_numpy(feat).float()
+            torch_sync(config)
+            core_time += time.time() - core_time_start
 
             top1 = evaluator(pred, y)
 
             all_top1.extend(top1.cpu())
-            core_time += time.time() - core_time_start
 
         acc.append(np.mean(all_top1))
 
     logger.info("Top1 Acc: " + str(acc))
 
     duration = time.time() - start
-    model_forward_perf = config.repeat * len(
-        dataloader) * config.batch_size / duration
-    logger.info("Vendor Inference(" + config.vendor + ") Perf: " +
-                str(model_forward_perf) + " ips")
-    model_forward_core_perf = config.repeat * len(
-        dataloader) * config.batch_size / core_time
-    logger.info("Vendor Inference(" + config.vendor + ") core Perf: " +
-                str(model_forward_core_perf) + " ips")
+    model_forward_perf, model_forward_core_perf = cal_perf(
+        config, len(dataloader), duration, core_time, "Inference")
 
-    return model_forward_perf, model_forward_core_perf
+    return model_forward_perf, model_forward_core_perf, round(
+        float(np.mean(acc)), 3)
