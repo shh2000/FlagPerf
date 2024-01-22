@@ -90,7 +90,9 @@ CASES = {
     # "detr:pytorch_1.13:A100:1:8:1": "/raid/dataset/detr/coco2017/",
     
     # "llama2_7b:deepspeed:A100:1:8:1": "/raid/dataset/llama2_7b_pretrain",
+    # "llama2_70b:megatron:H800:4:8:1": "/raid/dataset/llama2_70b_pretrain",
     # "aquila2_7b:flagscale:A100:1:8:1": "/raid/dataset/aquila2_7b_pretrain",
+    # "baichuan2_13b:deepspeed:H800:2:8:1": "/raid/dataset/baichuan2_13b_pretrain",
     
     # "llama1_7B:paddle_2.5.1:TP1PP1SH2SP8A10040G:1:8:1":"/raid/dataset/llama/"
     # "llama1_7B:paddle_2.5.1:TP2PP1SH1SP4A10040G:1:8:1":"/raid/dataset/llama/"
