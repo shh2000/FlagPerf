@@ -52,19 +52,15 @@
 ## 支持列表
 
 训练列表：
-<style>
-.small-font {
-    font-size: 12px;
-}
-</style>
-<table border="1" class="dataframe small-font">
+
+<table border="1" class="dataframe">
   <thead>
     <tr style="text-align: left;">
-      <th>编号</th>
-        <th>模型名称</th>
-      <th>模型类型</th>
-      <th>英伟达</th>
-      <th>昆仑芯</th>
+      <th style="font-size: 12px;">编号</th>
+        <th style="font-size: 12px;">模型名称</th>
+      <th style="font-size: 14px;">模型类型</th>
+      <th style="font-size: 16px;">英伟达</th>
+      <th style="font-size: 20px;">昆仑芯</th>
       <th>天数智芯</th>
       <th>摩尔线程</th>
       <th>沐曦</th>
