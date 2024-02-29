@@ -52,8 +52,12 @@
 ## 支持列表
 
 训练列表：
-
-<table border="1" class="dataframe">
+<style>
+.small-font {
+    font-size: 12px;
+}
+</style>
+<table border="1" class="dataframe small-font">
   <thead>
     <tr style="text-align: left;">
       <th>编号</th>
